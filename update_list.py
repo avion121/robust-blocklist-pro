@@ -22,7 +22,7 @@ for url in urls:
     except Exception as e:
         print(f"Error fetching {url}: {e}")
 
-# Append the minimal technique rules for Popup Blocker (strict)
+# Append minimal technique rules for Popup Blocker (strict)
 techniques = """
 # Popup Blocker (strict) Techniques
 window.open
@@ -32,7 +32,7 @@ form submission
 
 combined_content.append(techniques)
 
-# Merge and write to a single file
+# Merge and write to one file
 final_content = "\n\n".join(combined_content)
 with open("combined_list.txt", "w", encoding="utf-8") as f:
     f.write(final_content)
