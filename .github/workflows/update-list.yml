@@ -1,4 +1,4 @@
-name: Update Combined List
+name: Update Robust Blocklist Pro
 
 on:
   schedule:
@@ -32,6 +32,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add combined_list.txt
-          git diff-index --quiet HEAD || git commit -m "Update combined list [skip ci]"
+          git add robust-blocklist-pro.txt
+          git diff-index --quiet HEAD || git commit -m "Update robust blocklist pro [skip ci]"
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref }}
