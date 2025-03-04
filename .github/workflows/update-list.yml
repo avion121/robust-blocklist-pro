@@ -26,6 +26,10 @@ jobs:
       - name: Run update script
         run: python update_list.py
 
+      - name: Remove old file combined_list.txt if exists
+        run: |
+          git rm -f combined_list.txt || echo "combined_list.txt not present"
+
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
