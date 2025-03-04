@@ -2,8 +2,8 @@ name: Update Robust Blocklist Pro
 
 on:
   schedule:
-    - cron: '0 5 * * *'   # Runs daily at 5:00 UTC
-  workflow_dispatch:      # Allows manual triggering
+    - cron: '0 5 * * *'  # Runs daily at 5:00 UTC
+  workflow_dispatch:     # Allows manual triggering
 
 jobs:
   update-list:
@@ -27,8 +27,7 @@ jobs:
         run: python update_list.py
 
       - name: Remove old file combined_list.txt if exists
-        run: |
-          git rm -f combined_list.txt || echo "combined_list.txt not present"
+        run: git rm -f combined_list.txt || echo "combined_list.txt not present"
 
       - name: Commit and push changes
         env:
