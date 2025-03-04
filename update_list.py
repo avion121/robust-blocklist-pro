@@ -1,4 +1,5 @@
 import requests
+import os
 
 # List of URLs for the 6 blocklists
 urls = [
@@ -39,8 +40,16 @@ combined_content.append(popup_techniques)
 # Merge all content into one string
 final_content = "\n\n".join(combined_content)
 
-# Write the combined content to robust-blocklist-pro.txt
+# Define output file name
 output_file = "robust-blocklist-pro.txt"
+
+# Delete any previous versions of the files if they exist
+if os.path.exists("combined_list.txt"):
+    os.remove("combined_list.txt")
+if os.path.exists(output_file):
+    os.remove(output_file)
+
+# Write the new combined content to robust-blocklist-pro.txt
 with open(output_file, "w", encoding="utf-8") as f:
     f.write(final_content)
 
