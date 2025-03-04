@@ -12,7 +12,7 @@ urls = [
 
 combined_content = []
 
-# Download each list and combine them
+# Download each list and append its raw content
 for url in urls:
     try:
         response = requests.get(url)
@@ -22,19 +22,26 @@ for url in urls:
     except Exception as e:
         print(f"Error fetching {url}: {e}")
 
-# Append minimal technique rules for Popup Blocker (strict)
-technique_rules = """
+# Append all Popup Blocker (strict) technique commands
+popup_techniques = """
 # Popup Blocker (strict) Techniques
 window.open
 target=_blank
 form submission
+Deny popup request
+Allow popup request
+Open popup request in a background tab
+Redirect current page to popup URL source
 """.strip()
 
-combined_content.append(technique_rules)
+combined_content.append(popup_techniques)
 
-# Merge everything into one file
+# Merge all content into one string
 final_content = "\n\n".join(combined_content)
-with open("combined_list.txt", "w", encoding="utf-8") as f:
+
+# Write the combined content to robust-blocklist-pro.txt
+output_file = "robust-blocklist-pro.txt"
+with open(output_file, "w", encoding="utf-8") as f:
     f.write(final_content)
 
-print("combined_list.txt updated.")
+print(f"{output_file} updated.")
