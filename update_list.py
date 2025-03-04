@@ -13,12 +13,14 @@ urls = [
 
 combined_content = []
 
-# Download each list and append its raw content (no extra headers)
+# Download each list and append its raw content (with header replacement)
 for url in urls:
     try:
         response = requests.get(url)
         response.raise_for_status()
         content = response.text.strip()
+        # Replace any occurrence of HaGeZi's Pro DNS Blocklist with robust-blocklist-pro
+        content = content.replace("HaGeZi's Pro DNS Blocklist", "robust-blocklist-pro")
         combined_content.append(content)
     except Exception as e:
         print(f"Error fetching {url}: {e}")
