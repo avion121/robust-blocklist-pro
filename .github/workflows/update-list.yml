@@ -3,7 +3,7 @@ name: Update Combined List
 on:
   schedule:
     - cron: '0 5 * * *'   # Runs daily at 5:00 UTC
-  workflow_dispatch:      # Manual trigger option
+  workflow_dispatch:      # Allows manual triggering
 
 jobs:
   update-list:
