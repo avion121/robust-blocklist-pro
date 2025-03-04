@@ -13,32 +13,23 @@ urls = [
 
 combined_content = []
 
-# Download each list and append its raw content (with header replacement)
+# Download each list and process its content
 for url in urls:
     try:
         response = requests.get(url)
         response.raise_for_status()
         content = response.text.strip()
-        # Replace any occurrence of HaGeZi's Pro DNS Blocklist with robust-blocklist-pro
+        # Replace "HaGeZi's Pro DNS Blocklist" with "robust-blocklist-pro"
         content = content.replace("HaGeZi's Pro DNS Blocklist", "robust-blocklist-pro")
         combined_content.append(content)
     except Exception as e:
         print(f"Error fetching {url}: {e}")
 
-# Append all Popup Blocker (strict) technique commands (actionable rules only)
-popup_techniques = """
-window.open
-target=_blank
-form submission
-Deny popup request
-Allow popup request
-Open popup request in a background tab
-Redirect current page to popup URL source
-""".strip()
+# Append the rule to strictly deny all popup redirects
+popup_rule = "Deny popup redirects"
+combined_content.append(popup_rule)
 
-combined_content.append(popup_techniques)
-
-# Merge all content into one string
+# Merge all content into one string, ensuring proper separation
 final_content = "\n\n".join(combined_content)
 
 # Define output file name
@@ -50,7 +41,7 @@ if os.path.exists("combined_list.txt"):
 if os.path.exists(output_file):
     os.remove(output_file)
 
-# Write the new content to robust-blocklist-pro.txt
+# Write the final content to the output file
 with open(output_file, "w", encoding="utf-8") as f:
     f.write(final_content)
 
