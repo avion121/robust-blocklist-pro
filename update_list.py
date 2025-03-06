@@ -25,11 +25,13 @@ for url in urls:
     except Exception as e:
         print(f"Error fetching {url}: {e}")
 
-# Append the rule to strictly deny all popup redirects
-popup_rule = "Deny popup redirects"
+# Add a comprehensive rule to block any popup redirects permanently.
+# This rule uses a regular expression to match any URL containing the words "popup" and "redirect"
+# in sequence (ignoring case) and applies the "$popup" option to ensure it's enforced.
+popup_rule = "/popup.*redirect/i$popup"
 combined_content.append(popup_rule)
 
-# Merge all content into one string, ensuring proper separation
+# Merge all content into one string with proper separation
 final_content = "\n\n".join(combined_content)
 
 # Define output file name
