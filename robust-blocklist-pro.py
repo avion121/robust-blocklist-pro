@@ -53,7 +53,6 @@ class BlocklistGenerator:
     def __init__(self):
         self.session = self._create_retry_session()
         self.merged_rules = []
-        self.seen_rules = set()
         self.error_count = 0
 
     def _create_retry_session(self):
@@ -105,7 +104,7 @@ class BlocklistGenerator:
 
     def _optimize_rules(self):
         """Military-grade optimization algorithm"""
-        # Phase 1: Deduplication
+        # Phase 1: Deduplication based on the rule core (portion before any modifiers)
         unique_rules = []
         seen = set()
         for rule in self.merged_rules:
@@ -113,20 +112,26 @@ class BlocklistGenerator:
             if core not in seen:
                 seen.add(core)
                 unique_rules.append(rule)
-        # Phase 2: Sorting by specificity
+        # Phase 2: Sorting by specificity (longer domain parts first)
         unique_rules.sort(
             key=lambda x: len(x.split('||')[1]) if '||' in x else len(x),
             reverse=True
         )
-        # Phase 3: Wildcard compression
+        # Phase 3: Wildcard compression using a set for seen bases
         compressed = []
-        current_wildcard = ""
+        seen_bases = set()
         for rule in unique_rules:
             if '*.' in rule:
-                base = rule.split('*.')[1].split('^')[0]
-                if not current_wildcard.endswith(base):
+                try:
+                    base = rule.split('*.')[1].split('^')[0]
+                except IndexError:
+                    base = None
+                if base:
+                    if base not in seen_bases:
+                        seen_bases.add(base)
+                        compressed.append(rule)
+                else:
                     compressed.append(rule)
-                    current_wildcard = base
             else:
                 compressed.append(rule)
         self.merged_rules = compressed
