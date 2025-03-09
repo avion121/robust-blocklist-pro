@@ -72,16 +72,13 @@ class BlocklistGenerator:
     def _normalize_rule(self, line):
         """Convert all rules to standardized AdBlock format"""
         line = line.strip()
-        
         # Handle host file format
         if re.match(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+', line):
             domain = re.sub(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+', '', line).strip()
             return f'||{domain}^' if domain else None
-            
         # Remove redundant modifiers
         if '$' in line:
             line = line.replace('$important', '')
-            
         return line if line else None
 
     def _process_source(self, url):
@@ -89,12 +86,9 @@ class BlocklistGenerator:
         try:
             response = self.session.get(url, timeout=20)
             response.raise_for_status()
-            
             if 'text/plain' not in response.headers.get('Content-Type', ''):
                 raise ValueError(f'Invalid content type: {response.headers.get("Content-Type")}')
-                
             return response.text
-            
         except Exception as e:
             print(f'⚠️ Non-critical error with {url}: {str(e)}')
             self.error_count += 1
@@ -119,13 +113,11 @@ class BlocklistGenerator:
             if core not in seen:
                 seen.add(core)
                 unique_rules.append(rule)
-                
         # Phase 2: Sorting by specificity
         unique_rules.sort(
             key=lambda x: len(x.split('||')[1]) if '||' in x else len(x),
             reverse=True
         )
-        
         # Phase 3: Wildcard compression
         compressed = []
         current_wildcard = ""
@@ -137,46 +129,33 @@ class BlocklistGenerator:
                     current_wildcard = base
             else:
                 compressed.append(rule)
-                
         self.merged_rules = compressed
 
     def generate(self):
         """Generation pipeline with armored error handling"""
         print('🚀 Launching GOAT Generation Protocol')
-        
         for url in BLOCKLIST_URLS:
             if content := self._process_source(url):
                 for line in content.split('\n'):
                     if not line.strip() or line.startswith('!'):
                         continue
-                        
                     if any(domain in line for domain in WHITELIST):
                         continue
-                        
                     if rule := self._normalize_rule(line):
                         self.merged_rules.append(rule)
-                        
         # Add premium protections
         self._add_advanced_protections()
-        
         # Final optimization
         self._optimize_rules()
-        
         # Quality control check
         if self.error_count > 3:
             raise SystemExit('❌ Critical: Too many source errors')
-            
         return '\n'.join(self.merged_rules)
-
-# ==============
-# EXECUTION FLOW
-# ==============
 
 if __name__ == '__main__':
     try:
         generator = BlocklistGenerator()
         final_content = generator.generate()
-        
         with open('robust-blocklist-pro.txt', 'w', encoding='utf-8') as f:
             f.write(f"! Title: ROBUST-BLOCKLIST-PRO - Final Edition\n")
             f.write(f"! Version: 1.1\n")
@@ -184,11 +163,8 @@ if __name__ == '__main__':
             f.write(f"! Sources: {len(BLOCKLIST_URLS)} verified feeds\n")
             f.write(f"! Entries: {len(final_content.splitlines())}\n")
             f.write(final_content)
-            
         print('✅ Success: The Unbeatable GOAT is Ready')
-        print(f'ℹ️ Stats: {len(final_content.splitlines())} rules | '
-              f'{generator.error_count} non-critical errors')
-              
+        print(f'ℹ️ Stats: {len(final_content.splitlines())} rules | {generator.error_count} non-critical errors')
     except Exception as e:
         print(f'🛑 Catastrophic Failure: {str(e)}')
         sys.exit(1)
