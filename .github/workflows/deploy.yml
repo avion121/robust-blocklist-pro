@@ -9,7 +9,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
           pip install requests urllib3
 
       - name: Generate Blocklist
-        run: python ROBUST-BLOCKLIST-PRO.py
+        run: python robust-blocklist-pro.py
 
       - name: Commit & Push
         if: success()
