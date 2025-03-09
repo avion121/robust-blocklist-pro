@@ -30,10 +30,7 @@ BLOCKLIST_URLS = [
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
     "https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt",
-    
-    
     "https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts",
-   
     
     # Real-time threat intelligence
     "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
@@ -124,8 +121,8 @@ class BlocklistGenerator:
                 unique_rules.append(rule)
                 
         # Phase 2: Sorting by specificity
-        unique_rules.sort(key=lambda x: (
-            len(x.split('||')[1]) if '||' in x else len(x),
+        unique_rules.sort(
+            key=lambda x: len(x.split('||')[1]) if '||' in x else len(x),
             reverse=True
         )
         
