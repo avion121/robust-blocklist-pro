@@ -1,7 +1,6 @@
 
 markdown
-Copy
-Edit
+
 # ROBUST-BLOCKLIST-PRO
 
 **ROBUST-BLOCKLIST-PRO** is an advanced blocklist generator that aggregates and optimizes multiple blocklist sources into a single, consolidated file. Designed for enterprise-grade performance and future-proof protection, this project converts various blocklist formats into standardized AdBlock rules, injects advanced protections, and performs deduplication and optimization for enhanced efficiency.
