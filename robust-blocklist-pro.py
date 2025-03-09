@@ -2,6 +2,10 @@
 """
 THE ROBUST-BLOCKLIST-PRO GENERATOR - v1.1
 Certified Error-Free • Enterprise-Grade • Future-Proof
+
+This version is built in SAFE MODE: it only accepts rules in the exact format
+“||domain^” (converted from host file style entries) so as not to break any websites.
+It uses only the specified blocklist sources plus one explicit popup redirect rule.
 """
 
 import requests
@@ -10,15 +14,18 @@ import sys
 import re
 from datetime import datetime
 from requests.adapters import HTTPAdapter
-from urllib.parse import urlparse
 from requests.packages.urllib3.util.retry import Retry
 
 # ====================
 # CONFIGURATION ENGINE
 # ====================
 
+# Enable SAFE_MODE (always True in this version)
+SAFE_MODE = True
+
+# Use only these blocklist sources
 BLOCKLIST_URLS = [
-    # Core protection
+    # Core protection sources (host file or similar lists)
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt",
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts",
     "https://big.oisd.nl",
@@ -26,18 +33,19 @@ BLOCKLIST_URLS = [
     "https://easylist.to/easylist/easyprivacy.txt",
     "https://raw.githubusercontent.com/badmojr/1Hosts/master/Lite/adblock.txt",
     
-    # Enhanced security
+    # Enhanced security sources
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
     "https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt",
     "https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts",
     
-    # Real-time threat intelligence
+    # Real-time threat intelligence sources
     "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
     "https://ransomwaretracker.abuse.ch/downloads/RW_IPBL.txt",
     "https://urlhaus.abuse.ch/downloads/hostfile/"
 ]
 
+# Whitelist common trusted domains to avoid any accidental blocks
 WHITELIST = {
     'fonts.googleapis.com',
     'ajax.googleapis.com',
@@ -45,9 +53,19 @@ WHITELIST = {
     'www.googletagmanager.com'
 }
 
+# Explicit popup redirect block rule to add (only this advanced rule is used)
+POPUP_REDIRECT_RULE = "||*popup*redirect*^$popup"
+
 # =====================
-# PERFECTED CORE ENGINE
+# CORE ENGINE FUNCTIONS
 # =====================
+
+def is_safe_rule(rule):
+    """
+    A rule is considered safe if it is in the exact host file style:
+    "||domain.tld^" where domain.tld is a valid hostname.
+    """
+    return bool(re.match(r'^\|\|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\^$', rule))
 
 class BlocklistGenerator:
     def __init__(self):
@@ -56,7 +74,7 @@ class BlocklistGenerator:
         self.error_count = 0
 
     def _create_retry_session(self):
-        """Create HTTP session with industrial-strength retry logic"""
+        """Create an HTTP session with retry logic."""
         session = requests.Session()
         retry_policy = Retry(
             total=5,
@@ -69,22 +87,38 @@ class BlocklistGenerator:
         return session
 
     def _normalize_rule(self, line):
-        """Convert all rules to standardized AdBlock format"""
+        """
+        Convert a line from a blocklist to a standardized safe rule.
+        Accept only host file style entries (e.g., "0.0.0.0 domain.com")
+        which are converted to "||domain.com^". Also allow the explicit popup rule.
+        """
         line = line.strip()
-        # Handle host file format
+        # Allow the explicit popup redirect rule regardless of safe format
+        if line == POPUP_REDIRECT_RULE:
+            return POPUP_REDIRECT_RULE
+
+        # Process host file format entries (e.g., "0.0.0.0 domain.com")
         if re.match(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+', line):
             domain = re.sub(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+', '', line).strip()
-            return f'||{domain}^' if domain else None
-        # Remove redundant modifiers
-        if '$' in line:
-            line = line.replace('$important', '')
-        return line if line else None
+            rule = f'||{domain}^' if domain else None
+        else:
+            # For any other entry, take the line as-is
+            rule = line if line else None
+
+        # In SAFE_MODE, only accept rules that match the safe pattern
+        if SAFE_MODE:
+            if rule and is_safe_rule(rule):
+                return rule
+            return None
+        else:
+            return rule if rule else None
 
     def _process_source(self, url):
-        """Bulletproof content processing with validation"""
+        """Fetch and return the text content from a given URL."""
         try:
             response = self.session.get(url, timeout=20)
             response.raise_for_status()
+            # Ensure the content is plain text
             if 'text/plain' not in response.headers.get('Content-Type', ''):
                 raise ValueError(f'Invalid content type: {response.headers.get("Content-Type")}')
             return response.text
@@ -93,66 +127,44 @@ class BlocklistGenerator:
             self.error_count += 1
             return None
 
-    def _add_advanced_protections(self):
-        """Inject next-generation security rules"""
-        self.merged_rules.extend([
-            "||*popup*redirect*^$popup",
-            "||*^$csp=script-src 'self'",
-            "||tracking^$third-party",
-            "||analytics^$script,domain=~trustedsite.com"
-        ])
-
     def _optimize_rules(self):
-        """Military-grade optimization algorithm"""
-        # Phase 1: Deduplication based on the rule core (portion before any modifiers)
+        """Deduplicate and sort the rules."""
         unique_rules = []
         seen = set()
         for rule in self.merged_rules:
-            core = rule.split('$')[0].strip()
+            core = rule.split('$')[0].strip()  # Only consider part before any modifiers
             if core not in seen:
                 seen.add(core)
                 unique_rules.append(rule)
-        # Phase 2: Sorting by specificity (longer domain parts first)
+        # Sort by specificity (longer domain parts first)
         unique_rules.sort(
             key=lambda x: len(x.split('||')[1]) if '||' in x else len(x),
             reverse=True
         )
-        # Phase 3: Wildcard compression using a set for seen bases
-        compressed = []
-        seen_bases = set()
-        for rule in unique_rules:
-            if '*.' in rule:
-                try:
-                    base = rule.split('*.')[1].split('^')[0]
-                except IndexError:
-                    base = None
-                if base:
-                    if base not in seen_bases:
-                        seen_bases.add(base)
-                        compressed.append(rule)
-                else:
-                    compressed.append(rule)
-            else:
-                compressed.append(rule)
-        self.merged_rules = compressed
+        self.merged_rules = unique_rules
 
     def generate(self):
-        """Generation pipeline with armored error handling"""
+        """Run the blocklist generation pipeline."""
         print('🚀 Launching GOAT Generation Protocol')
         for url in BLOCKLIST_URLS:
-            if content := self._process_source(url):
+            content = self._process_source(url)
+            if content:
                 for line in content.split('\n'):
+                    # Skip empty lines and comments
                     if not line.strip() or line.startswith('!'):
                         continue
+                    # Skip if the line contains any whitelisted domain
                     if any(domain in line for domain in WHITELIST):
                         continue
-                    if rule := self._normalize_rule(line):
+                    rule = self._normalize_rule(line)
+                    if rule:
                         self.merged_rules.append(rule)
-        # Add premium protections
-        self._add_advanced_protections()
-        # Final optimization
+        # Add the explicit popup redirect rule if not already present
+        if POPUP_REDIRECT_RULE not in self.merged_rules:
+            self.merged_rules.append(POPUP_REDIRECT_RULE)
+        # Final optimization: deduplication and sorting
         self._optimize_rules()
-        # Quality control check
+        # Quality control: if too many sources failed, abort.
         if self.error_count > 3:
             raise SystemExit('❌ Critical: Too many source errors')
         return '\n'.join(self.merged_rules)
