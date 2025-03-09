@@ -1,0 +1,42 @@
+name: 🦬 ROBUST-BLOCKLIST-PRO Deployment
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Daily at 05:00 UTC
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set Up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests urllib3
+
+      - name: Generate Blocklist
+        run: python ROBUST-BLOCKLIST-PRO.py
+
+      - name: Commit & Push
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "ROBUST-BLOCKLIST-PRO Updater"
+          git config --global user.email "ROBUST-BLOCKLIST-PRO-updater@users.noreply.github.com"
+          git add robust-blocklist-pro.txt
+          git commit -m "🦬 Updated ROBUST-BLOCKLIST-PRO - $(date -u +'%Y-%m-%dT%H:%MZ')"
+          git push origin HEAD:${{ github.ref }}
