@@ -4,114 +4,90 @@ Copy
 Edit
 # ROBUST-BLOCKLIST-PRO
 
-**Certified Error-Free • Enterprise-Grade • Future-Proof**
+**ROBUST-BLOCKLIST-PRO** is an advanced blocklist generator that aggregates and optimizes multiple blocklist sources into a single, consolidated file. Designed for enterprise-grade performance and future-proof protection, this project converts various blocklist formats into standardized AdBlock rules, injects advanced protections, and performs deduplication and optimization for enhanced efficiency.
 
-ROBUST-BLOCKLIST-PRO is a Python-based blocklist generator that collects, processes, and optimizes blocklists from multiple trusted sources. The final output is a filter list file that can be used in browsers like Brave (using its built-in ad blocker) or with extensions (e.g., uBlock Origin in Chrome/Firefox) as a custom filter list.
+## Features
 
----
-
-## What It Does
-
-- **Aggregates Multiple Sources:**  
-  Downloads blocklist data from reputable feeds such as adblock lists, malware trackers, and threat intelligence sources.
-
-- **Normalizes and Processes Data:**  
-  Converts various rule formats (e.g. host file entries like `0.0.0.0 domain.com`) into a standardized AdBlock Plus rule format (e.g. `||domain.com^`).
-
-- **Filters & Optimizes:**  
-  - **Filtering:** Skips comments, empty lines, and rules matching whitelisted domains.  
-  - **Deduplication:** Removes duplicate entries.  
-  - **Sorting & Compression:** Sorts rules by specificity and compresses similar patterns to create a compact and efficient list.
-
-- **Enhances Security:**  
-  Injects additional advanced protection rules into the final blocklist.
-
-- **Generates Final Output:**  
-  Produces a text file (`robust-blocklist-pro.txt`) that contains the optimized blocklist along with metadata (version, update time, number of sources, and entry count).
-
----
+- **Multi-Source Aggregation:** Retrieves blocklists from various trusted sources.
+- **Standardization:** Converts host file and other rule formats into a consistent AdBlock syntax.
+- **Advanced Protections:** Adds next-generation security rules for enhanced threat prevention.
+- **Optimization Pipeline:** Deduplication, sorting by specificity, and wildcard compression ensure a lean, effective blocklist.
+- **Automated Deployment:** Integrated with GitHub Actions for scheduled (daily at 05:00 UTC) and on-demand deployments.
+- **Error Handling:** Built-in retry logic and error reporting to handle source fetch failures gracefully.
 
 ## How It Works
 
-1. **Reliable Downloading:**  
-   Uses Python's `requests` library with retry logic to fetch blocklists from various URLs.
+1. **Fetching Sources:** The script downloads blocklists from multiple URLs.
+2. **Normalization:** Rules are processed to convert them into a standardized format. Host file entries are transformed into AdBlock rules.
+3. **Filtering:** Whitelisted domains are skipped to avoid blocking essential resources.
+4. **Advanced Protections:** Additional security rules are injected.
+5. **Optimization:** The blocklist undergoes deduplication, sorting, and wildcard compression.
+6. **Output:** The final, optimized blocklist is saved as `robust-blocklist-pro.txt`.
 
-2. **Content Processing:**  
-   - Reads each source line by line.
-   - Converts host file formats into the AdBlock Plus format.
-   - Excludes rules for domains on a configurable whitelist.
+## Repository Structure
 
-3. **Optimization Pipeline:**  
-   - **Deduplication:** Eliminates duplicate rules.
-   - **Sorting:** Orders rules based on the length/specificity of their patterns.
-   - **Wildcard Compression:** Merges similar rules to minimize redundancy.
+- **`robust-blocklist-pro.py`**: The main Python script that generates the blocklist.
+- **`.github/workflows/deployment.yml`**: GitHub Actions workflow file that automates the generation and deployment process.
+- **`robust-blocklist-pro.txt`**: (Generated) The final blocklist output.
 
-4. **Output Generation:**  
-   Saves the final blocklist (with metadata) to a file that you can then host or directly use.
+## Prerequisites
 
----
+- **Python 3.11** or higher
+- The following Python packages:
+  - `requests`
+  - `urllib3`
+- A GitHub repository with Actions enabled for automated deployment.
 
-## Installation & Usage
+## Setup & Usage
 
-1. **Clone the Repository:**
+### Running Locally
+
+1. **Clone the repository:**
 
    ```bash
    git clone https://github.com/your-username/robust-blocklist-pro.git
    cd robust-blocklist-pro
-Install Dependencies:
-
-Ensure you have Python 3.11 or later installed. Then run:
+Install dependencies:
 
 bash
 Copy
 Edit
 python -m pip install --upgrade pip
 pip install requests urllib3
-Run the Generator:
+Generate the blocklist:
 
 bash
 Copy
 Edit
 python robust-blocklist-pro.py
-This command creates a file named robust-blocklist-pro.txt in the repository root containing the optimized blocklist.
+The blocklist will be output to robust-blocklist-pro.txt.
 
-Using the Blocklist with Browsers
-For Brave Browser
-Brave lets you add custom filter lists to enhance its built‑in ad blocker.
+Automated Deployment with GitHub Actions
+The repository includes a GitHub Actions workflow that:
 
-Host the Blocklist:
+Runs daily at 05:00 UTC.
+Can also be triggered manually via the GitHub Actions interface.
+Checks out the repository, sets up Python 3.11, installs dependencies, generates the blocklist, and pushes the updated file back to the repository.
+Make sure to configure the required repository secrets (like GITHUB_TOKEN) as needed.
 
-You can host the generated robust-blocklist-pro.txt file on your own server or via GitHub Pages. For example, if you host it on GitHub, the raw file URL might be:
-https://raw.githubusercontent.com/your-username/robust-blocklist-pro/main/robust-blocklist-pro.txt
-Add the Custom Filter List in Brave:
+Customization
+Adding/Removing Sources:
+Edit the BLOCKLIST_URLS list in robust-blocklist-pro.py to modify the blocklist sources.
 
-Open Brave and go to Settings > Shields.
-Scroll down to the Additional Filters section.
-Click Add Custom Filter List and enter a name (e.g., "ROBUST-BLOCKLIST-PRO") along with the URL of your hosted blocklist.
-Save your changes.
-For Other Browsers (Chrome, Firefox, etc.)
-If you use an extension like uBlock Origin:
-
-Open the uBlock Origin dashboard.
-Go to the Filter Lists tab and scroll down to Custom.
-Click Add a new filter list and paste the URL of your hosted robust-blocklist-pro.txt.
-Click Apply Changes.
-Other ad blockers that support custom filter lists usually provide similar options.
-
-Automated Updates with GitHub Actions
-A GitHub Actions workflow (located at .github/workflows/deploy.yml) is included to automatically run the generator on a schedule (daily at 05:00 UTC) and update the blocklist file. This ensures your filter list remains current without manual intervention.
+Whitelist Domains:
+Update the WHITELIST set to include any domains you wish to exclude from being blocked.
 
 Contributing
-Contributions, bug reports, and feature suggestions are welcome!
-Feel free to open an issue or submit a pull request with improvements.
+Contributions are welcome! If you encounter any issues or have ideas for improvements:
 
+Fork the repository.
+Create a new branch for your feature or bug fix.
+Submit a pull request with a detailed description of your changes.
 License
 This project is licensed under the MIT License.
 
 Acknowledgements
-Thanks to the maintainers of the various blocklist sources and the open-source community for their ongoing contributions to online security.
-
-Note: Make sure that the file names and paths match exactly (including case sensitivity) in your repository and hosting setup to avoid any errors.
+Special thanks to the developers and communities behind the blocklist sources and the GitHub Actions framework that made this project possible.
 
 yaml
 Copy
@@ -119,4 +95,4 @@ Edit
 
 ---
 
-This single README file explains what the blocklist generator does and provides clear instructions on how to install, run, and use the resulting filter list in Brave and other browsers as a custom filter list. Adjust URLs and details as needed for your project.
+This README provides a clear overview of **ROBUST-BLOCKLIST-PRO**, explains its functionality, and details how to set up, customize, and deploy the project.
