@@ -8,11 +8,12 @@ This version is built in SAFE MODE: it only accepts rules in the exact format
 It uses only the specified blocklist sources plus one explicit popup redirect rule.
 """
 
-import requests
 import os
-import sys
 import re
+import sys
 from datetime import datetime
+
+import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -56,25 +57,28 @@ WHITELIST = {
 # Explicit popup redirect block rule to add (only this advanced rule is used)
 POPUP_REDIRECT_RULE = "||*popup*redirect*^$popup"
 
-# =====================
-# CORE ENGINE FUNCTIONS
-# =====================
 
 def is_safe_rule(rule):
     """
-    A rule is considered safe if it is in the exact host file style:
-    "||domain.tld^" where domain.tld is a valid hostname.
+    Check if a rule is in the safe format "||domain.tld^".
     """
     return bool(re.match(r'^\|\|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\^$', rule))
 
+
 class BlocklistGenerator:
+    """
+    BlocklistGenerator fetches blocklist sources, normalizes the rules,
+    and generates a unified blocklist.
+    """
     def __init__(self):
         self.session = self._create_retry_session()
         self.merged_rules = []
         self.error_count = 0
 
     def _create_retry_session(self):
-        """Create an HTTP session with retry logic."""
+        """
+        Create an HTTP session with retry logic.
+        """
         session = requests.Session()
         retry_policy = Retry(
             total=5,
@@ -88,11 +92,12 @@ class BlocklistGenerator:
 
     def _normalize_rule(self, line):
         """
-        Convert a line from a blocklist to a standardized safe rule.
-        Accept only host file style entries (e.g., "0.0.0.0 domain.com")
-        which are converted to "||domain.com^". Also allow the explicit popup rule.
+        Convert a blocklist line into a standardized safe rule.
+        Accepts host file style entries (e.g., "0.0.0.0 domain.com")
+        and converts them to "||domain.com^". Also allows the explicit popup rule.
         """
         line = line.strip()
+
         # Allow the explicit popup redirect rule regardless of safe format
         if line == POPUP_REDIRECT_RULE:
             return POPUP_REDIRECT_RULE
@@ -107,32 +112,35 @@ class BlocklistGenerator:
 
         # In SAFE_MODE, only accept rules that match the safe pattern
         if SAFE_MODE:
-            if rule and is_safe_rule(rule):
-                return rule
-            return None
+            return rule if rule and is_safe_rule(rule) else None
         else:
-            return rule if rule else None
+            return rule
 
     def _process_source(self, url):
-        """Fetch and return the text content from a given URL."""
+        """
+        Fetch and return the text content from a given URL.
+        """
         try:
             response = self.session.get(url, timeout=20)
             response.raise_for_status()
-            # Ensure the content is plain text
-            if 'text/plain' not in response.headers.get('Content-Type', ''):
-                raise ValueError(f'Invalid content type: {response.headers.get("Content-Type")}')
+            content_type = response.headers.get('Content-Type', '')
+            if 'text/plain' not in content_type:
+                raise ValueError(f"Invalid content type: {content_type}")
             return response.text
         except Exception as e:
-            print(f'⚠️ Non-critical error with {url}: {str(e)}')
+            print(f"⚠️ Non-critical error with {url}: {e}")
             self.error_count += 1
             return None
 
     def _optimize_rules(self):
-        """Deduplicate and sort the rules."""
+        """
+        Deduplicate and sort the rules.
+        """
         unique_rules = []
         seen = set()
         for rule in self.merged_rules:
-            core = rule.split('$')[0].strip()  # Only consider part before any modifiers
+            # Only consider part before any modifiers
+            core = rule.split('$')[0].strip()
             if core not in seen:
                 seen.add(core)
                 unique_rules.append(rule)
@@ -144,44 +152,59 @@ class BlocklistGenerator:
         self.merged_rules = unique_rules
 
     def generate(self):
-        """Run the blocklist generation pipeline."""
-        print('🚀 Launching GOAT Generation Protocol')
+        """
+        Run the blocklist generation pipeline.
+        """
+        print("🚀 Launching GOAT Generation Protocol")
         for url in BLOCKLIST_URLS:
             content = self._process_source(url)
             if content:
-                for line in content.split('\n'):
+                for line in content.splitlines():
                     # Skip empty lines and comments
-                    if not line.strip() or line.startswith('!'):
+                    if not line.strip() or line.strip().startswith('!'):
                         continue
-                    # Skip if the line contains any whitelisted domain
+                    # Skip lines with any whitelisted domain
                     if any(domain in line for domain in WHITELIST):
                         continue
                     rule = self._normalize_rule(line)
                     if rule:
                         self.merged_rules.append(rule)
+
         # Add the explicit popup redirect rule if not already present
         if POPUP_REDIRECT_RULE not in self.merged_rules:
             self.merged_rules.append(POPUP_REDIRECT_RULE)
+
         # Final optimization: deduplication and sorting
         self._optimize_rules()
+
         # Quality control: if too many sources failed, abort.
         if self.error_count > 3:
-            raise SystemExit('❌ Critical: Too many source errors')
-        return '\n'.join(self.merged_rules)
+            raise SystemExit("❌ Critical: Too many source errors")
 
-if __name__ == '__main__':
+        return "\n".join(self.merged_rules)
+
+
+def main():
     try:
         generator = BlocklistGenerator()
         final_content = generator.generate()
-        with open('robust-blocklist-pro.txt', 'w', encoding='utf-8') as f:
-            f.write(f"! Title: ROBUST-BLOCKLIST-PRO - Final Edition\n")
-            f.write(f"! Version: 1.1\n")
+
+        output_filename = "robust-blocklist-pro.txt"
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write("! Title: ROBUST-BLOCKLIST-PRO - Final Edition\n")
+            f.write("! Version: 1.1\n")
             f.write(f"! Updated: {datetime.utcnow().isoformat()}\n")
             f.write(f"! Sources: {len(BLOCKLIST_URLS)} verified feeds\n")
             f.write(f"! Entries: {len(final_content.splitlines())}\n")
+            f.write("\n")  # Blank line for improved readability
             f.write(final_content)
-        print('✅ Success: The Unbeatable GOAT is Ready')
-        print(f'ℹ️ Stats: {len(final_content.splitlines())} rules | {generator.error_count} non-critical errors')
+
+        print("✅ Success: The Unbeatable GOAT is Ready")
+        print(f"ℹ️ Stats: {len(final_content.splitlines())} rules | {generator.error_count} non-critical errors")
     except Exception as e:
-        print(f'🛑 Catastrophic Failure: {str(e)}')
+        print(f"🛑 Catastrophic Failure: {e}")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
