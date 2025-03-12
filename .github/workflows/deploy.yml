@@ -1,4 +1,4 @@
-name: 🦬 ROBUST-BLOCKLIST-PRO Deployment
+name: "🦬 ROBUST-BLOCKLIST-PRO Deployment"
 
 on:
   schedule:
