@@ -29,7 +29,7 @@ jobs:
       - name: Generate Blocklist
         run: python robust-blocklist-pro.py
 
-      - name: Commit & Push
+      - name: Commit & Push Changes
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,5 +37,5 @@ jobs:
           git config --global user.name "ROBUST-BLOCKLIST-PRO Updater"
           git config --global user.email "ROBUST-BLOCKLIST-PRO-updater@users.noreply.github.com"
           git add robust-blocklist-pro.txt
-          git commit -m "🦬 Updated ROBUST-BLOCKLIST-PRO - $(date -u +'%Y-%m-%dT%H:%MZ')"
+          git diff-index --quiet HEAD || git commit -m "🦬 Updated ROBUST-BLOCKLIST-PRO - $(date -u +'%Y-%m-%dT%H:%MZ')"
           git push origin HEAD:${{ github.ref }}
