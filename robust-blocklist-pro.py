@@ -43,18 +43,18 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# All provided blocklist URLs (duplicates are included here but will be removed)
+# All provided blocklist URLs (duplicates will be removed)
 FILTER_LIST_URLS = [
     # uBlock Origin Filters
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",       # Ads
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/badware.txt",       # Badware risks
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt",       # Privacy
-    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/quick-fixes.txt",   # Quick fixes
-    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt",       # Unbreak
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/quick-fixes.txt",     # Quick fixes
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt",         # Unbreak
 
     # EasyList & Easy Privacy
-    "https://easylist.to/easylist/easylist.txt",                                              # EasyList
-    "https://easylist.to/easylist/easyprivacy.txt",                                           # Easy Privacy
+    "https://easylist.to/easylist/easylist.txt",                                                # EasyList
+    "https://easylist.to/easylist/easyprivacy.txt",                                             # Easy Privacy
 
     # Online Malicious URL Blocklists
     "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
@@ -88,6 +88,54 @@ def deduplicate_preserve_order(urls):
 
 def fetch_filter_list(url):
     """
-   
-::contentReference[oaicite:1]{index=1}
- 
+    Fetch the content from the given URL using a session with retry logic.
+    Returns the text content or None if an error occurs.
+    """
+    session = requests.Session()
+    retry_policy = Retry(
+        total=5,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"]
+    )
+    adapter = HTTPAdapter(max_retries=retry_policy)
+    session.mount("https://", adapter)
+    try:
+        response = session.get(url, timeout=20)
+        response.raise_for_status()
+        return response.text
+    except Exception as e:
+        print(f"Error fetching {url}: {e}", file=sys.stderr)
+        return None
+
+def main():
+    unique_urls = deduplicate_preserve_order(FILTER_LIST_URLS)
+    combined_content = []
+    
+    # Header metadata
+    combined_content.append("! Title: ROBUST-BLOCKLIST-PRO - Comprehensive Blocklist")
+    combined_content.append("! Version: 3.3")
+    combined_content.append(f"! Updated: {datetime.utcnow().isoformat()}")
+    combined_content.append("! Description: Aggregated blocklists from multiple sources.")
+    combined_content.append("")
+    
+    # Fetch each unique URL and append its content
+    for url in unique_urls:
+        print(f"Fetching: {url} ...")
+        content = fetch_filter_list(url)
+        if content:
+            combined_content.append(f"! Source: {url}")
+            combined_content.append(content)
+            combined_content.append("")  # Separator between sources
+
+    output_filename = "robust-blocklist-pro.txt"
+    try:
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write("\n".join(combined_content))
+        print("✅ Filter list updated successfully.")
+    except Exception as e:
+        print(f"Error writing to {output_filename}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
