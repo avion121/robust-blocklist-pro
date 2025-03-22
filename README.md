@@ -1,67 +1,66 @@
 # ROBUST-BLOCKLIST-PRO
 
-**ROBUST-BLOCKLIST-PRO** is an advanced blocklist generator that aggregates trusted blocklists from multiple sources and consolidates them into one comprehensive, optimized blocklist. It fetches data from a curated list of reliable feeds, automatically removes duplicate sources, and produces a unified output file. Updates are fully automated via GitHub Actions, ensuring your blocklist remains current with daily deployments at 05:00 UTC.
-
-## GitHub Actions Status
-
-![GitHub Actions Status](https://github.com/your-username/your-repository/workflows/ROBUST-BLOCKLIST-PRO%20Deployment/badge.svg)
-
-## Table of Contents
-
-- [Features](#features)
-- [How It Works](#how-it-works)
-- [Repository Structure](#repository-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
+ROBUST-BLOCKLIST-PRO is a comprehensive aggregated blocklist designed to combine multiple reputable sources into one unified list. This project gathers default filters from popular blocklist providers such as uBlock Origin, EasyList, Online Malicious URL Blocklists, and several other specialized lists.
 
 ## Features
 
-- **Aggregated Trusted Sources:**  
-  Consolidates blocklists from multiple reliable feeds (including uBlock Origin filters, EasyList, Peter Lowe’s list, and additional protection and threat intelligence sources).
+- **Aggregated Sources:** Combines blocklists from different categories:
+  - **uBlock Origin Default Filters:** filters, badware, privacy, quick-fixes, and unbreak.
+  - **EasyList & EasyPrivacy:** Removes ads and trackers.
+  - **Online Malicious URL Blocklists:** Includes Feodo Tracker, Ransomware Tracker, and URLhaus.
+  - **Peter Lowe's Ad & Tracking Server List**
+  - **hagezi Pro Blocklist**
+  - **StevenBlack fakenews-gambling Hosts**
+  - **OISD Big Full:** Domain blocklist.
+  - **1Hosts Lite Adblock List**
+  - **Spam404 Main Blacklist**
+  - **Malware Host Filter List**
+  - **AdGuard Mobile FiltersRegistry**
 
-- **Automated Updates:**  
-  Uses a GitHub Actions workflow to fetch, combine, and deploy the blocklist daily at 05:00 UTC (or via manual dispatch).
+- **Stealth Techniques:**  
+  Uses randomized User-Agent strings, persistent sessions with retry policies, and randomized delays to mimic human browsing.
 
-- **Deduplication:**  
-  Automatically removes duplicate URLs, ensuring each unique source is processed only once.
-
-- **Robust Error Handling:**  
-  Incorporates retry logic and error reporting for dependable source fetching.
-
-- **Comprehensive Coverage:**  
-  Combines a wide range of lists to maximize blocking of unwanted content while preserving legitimate websites.
+- **Easy Integration:**  
+  Automatically generates an updated blocklist file that can be used with adblockers and other filtering tools.
 
 ## How It Works
 
-1. **Fetching Sources:**  
-   The generator downloads blocklists from multiple trusted URLs using a retry-enabled HTTP session.
+1. **Scheduled Execution:**  
+   A GitHub Actions workflow runs daily at 05:00 UTC (or can be triggered manually) to generate the blocklist.
 
-2. **Deduplication:**  
-   Duplicate URLs are automatically removed while preserving the original order.
+2. **Python Script:**  
+   The script fetches each list from verified URLs, deduplicates them, and aggregates the content with metadata headers.
 
-3. **Aggregation:**  
-   The contents of all fetched lists are combined into a single file with metadata annotations, including the source URL for each section.
+3. **Commit & Push:**  
+   Changes are committed and pushed back to the repository automatically if updates are detected.
 
-4. **Output Generation:**  
-   The final consolidated blocklist is written to `robust-blocklist-pro.txt`.
+## Setup & Deployment
 
-5. **Automated Deployment:**  
-   A GitHub Actions workflow runs daily (or via manual dispatch) to update and commit the new blocklist automatically.
+### GitHub Actions Workflow
 
-## Repository Structure
+The workflow file is located at `.github/workflows/deployment.yml`. It sets up the environment, installs dependencies, runs the Python script, and commits the updated blocklist.
 
-- **`robust-blocklist-pro.py`**  
-  The main Python script that aggregates, deduplicates, and generates the consolidated blocklist.
+### Python Script
 
-- **`.github/workflows/robust-blocklist-pro.yml`**  
-  The GitHub Actions workflow file for automated generation and deployment of the blocklist.
+The core functionality is implemented in `robust-blocklist-pro.py`. This script:
+- Creates a persistent session with retries.
+- Fetches each filter list using randomized User-Agent strings.
+- Introduces random delays between requests.
+- Writes the combined output to `robust-blocklist-pro.txt`.
 
-- **`robust-blocklist-pro.txt`**  
-  *(Generated)* The final, consolidated blocklist output file.
+## Requirements
+
+- Python 3.11 or higher.
+- `requests` library (installed automatically by the workflow).
+
+## Contributing
+
+Feel free to fork the repository and suggest improvements or additional sources. Make sure to verify URLs against their official sources before submitting a pull request.
+
+## License
+
+This project is licensed under the MIT License.
 
 ---
 
-These final versions should be error-free, well-structured, and ready for deployment in your GitHub repository.
+Copy and paste the above files into your GitHub repository, and the project should run correctly without errors.
