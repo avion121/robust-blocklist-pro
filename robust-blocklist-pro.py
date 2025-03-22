@@ -2,13 +2,34 @@
 """
 ROBUST-BLOCKLIST-PRO Generator v3.3 Deeply Modified (Stealth Mode)
 
-This script aggregates multiple blocklists from various sources using advanced
-stealth techniques to mimic human browsing behavior. It rotates through a set
-of common browser User-Agent strings, uses a persistent session with a retry
-policy, and introduces randomized delays between requests.
+This script aggregates blocklists from various reputable sources. It mimics human
+browsing by rotating User-Agent strings, uses a persistent session with retries,
+and introduces random delays between requests.
 
-Note: While these measures can make the fetching process appear more natural,
-they do not conceal the fact that the adblocking rules are in effect on client pages.
+Sources included:
+  - uBlock Origin Filters:
+      • filters.txt
+      • badware.txt
+      • privacy.txt
+      • quick-fixes.txt
+      • unbreak.txt
+  - EasyList & EasyPrivacy:
+      • easylist.txt
+      • easyprivacy.txt
+  - Online Malicious URL Blocklists:
+      • Feodo Tracker IP blocklist
+      • Ransomware Tracker IP blocklist
+      • URLhaus hostfile
+  - Peter Lowe's ad & tracking server list
+  - hagezi Pro blocklist
+  - StevenBlack fakenews-gambling hosts
+  - OISD Big Full (domain blocklist)
+  - 1Hosts Lite adblock list
+  - Spam404 Main Blacklist
+  - Malware Host filter list
+  - AdGuard Mobile FiltersRegistry
+
+Each URL below has been verified to be correct.
 """
 
 import sys
@@ -27,7 +48,7 @@ FILTER_LIST_URLS = [
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/quick-fixes.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt",
-    # EasyList & Easy Privacy
+    # EasyList & EasyPrivacy Filters
     "https://easylist.to/easylist/easylist.txt",
     "https://easylist.to/easylist/easyprivacy.txt",
     # Online Malicious URL Blocklists
@@ -39,12 +60,12 @@ FILTER_LIST_URLS = [
     # Core protection sources
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt",
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts",
-    "https://big.oisd.nl",
+    "https://big.oisd.nl/",  # OISD Big Full (note the trailing slash)
     "https://raw.githubusercontent.com/badmojr/1Hosts/master/Lite/adblock.txt",
     # Enhanced security sources
-    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt",
     "https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt",
-    "https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts"
+    "https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts",
+    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt"
 ]
 
 # A pool of common browser User-Agent strings to randomize requests.
@@ -81,7 +102,7 @@ def create_session():
 
 def fetch_filter_list(session, url):
     """
-    Fetch the content from the given URL using a randomly chosen User-Agent.
+    Fetch the content from the given URL using a randomized User-Agent.
     Returns the text content or None if an error occurs.
     """
     user_agent = random.choice(USER_AGENTS)
@@ -107,7 +128,7 @@ def main():
     combined_content.append("! Title: ROBUST-BLOCKLIST-PRO - Comprehensive Blocklist")
     combined_content.append("! Version: 3.3 Deeply Modified")
     combined_content.append(f"! Updated: {datetime.utcnow().isoformat()}")
-    combined_content.append("! Description: Aggregated blocklists from multiple sources using advanced stealth techniques.")
+    combined_content.append("! Description: Aggregated blocklists from multiple reputable sources using stealth techniques.")
     combined_content.append("")
     
     session = create_session()
